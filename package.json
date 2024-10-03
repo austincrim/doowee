@@ -4,25 +4,24 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "remix vite:build",
+    "build": "react-router build",
     "deploy": "wrangler deploy",
-    "dev": "remix vite:dev",
+    "dev": "react-router dev",
     "start": "wrangler dev",
-    "typecheck": "tsc",
+    "typecheck": "react-router typegen && tsc",
     "typegen": "wrangler types"
   },
   "dependencies": {
-    "@remix-run/cloudflare": "^2.12.1",
-    "@remix-run/react": "^2.12.1",
-    "@remix-run/server-runtime": "^2.12.1",
+    "@react-router/cloudflare": "^7.0.0-pre.0",
     "isbot": "^4.1.0",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-aria-components": "^1.4.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.3.1",
+    "react-router": "^7.0.0-pre.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",
-    "@remix-run/dev": "^2.12.1",
+    "@react-router/dev": "^7.0.0-pre.0",
     "@tailwindcss/vite": "^4.0.0-alpha.25",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",

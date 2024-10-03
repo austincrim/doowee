@@ -1,7 +1,7 @@
-import { createRequestHandler, type ServerBuild } from "@remix-run/cloudflare"
+import { createRequestHandler } from "react-router"
 import * as build from "./build/server"
 
-const handleRemixRequest = createRequestHandler(build as any as ServerBuild)
+const handleRequest = createRequestHandler(build)
 
 export default {
   async fetch(request, env, ctx) {
@@ -12,8 +12,8 @@ export default {
       const loadContext = {
         cloudflare: {
           // This object matches the return value from Wrangler's
-          // `getPlatformProxy` used during development via Remix's
-          // `cloudflareDevProxyVitePlugin`:
+          // `getPlatformProxy` used during development via React Router's
+          // `cloudflareDevProxy`:
           // https://developers.cloudflare.com/workers/wrangler/api/#getplatformproxy
           cf: request.cf,
           ctx: { waitUntil, passThroughOnException },
@@ -21,7 +21,7 @@ export default {
           env
         }
       }
-      return await handleRemixRequest(request, loadContext)
+      return await handleRequest(request, loadContext)
     } catch (error) {
       console.log(error)
       return new Response("An unexpected error occurred", { status: 500 })

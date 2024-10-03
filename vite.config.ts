@@ -1,25 +1,11 @@
 import { defineConfig } from "vite"
-import {
-  vitePlugin as remix,
-  cloudflareDevProxyVitePlugin
-} from "@remix-run/dev"
+import { reactRouter } from "@react-router/dev/vite"
+import { cloudflareDevProxy } from "@react-router/dev/vite/cloudflare"
 import tsconfigPaths from "vite-tsconfig-paths"
 import tw from "@tailwindcss/vite"
 
 export default defineConfig({
-  plugins: [
-    tw(),
-    cloudflareDevProxyVitePlugin(),
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        unstable_singleFetch: true
-      }
-    }),
-    tsconfigPaths()
-  ],
+  plugins: [cloudflareDevProxy(), tw(), reactRouter(), tsconfigPaths()],
   ssr: {
     resolve: {
       conditions: ["workerd", "worker", "browser"]
