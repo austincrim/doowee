@@ -27,4 +27,4 @@ export default {
       return new Response("An unexpected error occurred", { status: 500 })
     }
   }
-} satisfies ExportedHandler<Env & { __STATIC_CONTENT: KVNamespace<string> }>
+} satisfies ExportedHandler<Env>
