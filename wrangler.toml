@@ -1,12 +1,10 @@
-name = "remix-cloudflare-workers-template"
+name = "doowee"
 
 main = "./server.ts"
 workers_dev = true
 # https://developers.cloudflare.com/workers/platform/compatibility-dates
 compatibility_date = "2023-04-20"
-
-[site]
-bucket = "./build/client"
+assets = { directory = "./build/client" }
 
 [build]
 command = "npm run build"
