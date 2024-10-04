@@ -12,8 +12,18 @@
     "typegen": "wrangler types"
   },
   "dependencies": {
+    "@instantdb/core": "^0.14.12",
+    "@instantdb/react": "^0.14.12",
+    "@nytimes/react-prosemirror": "^0.6.2",
     "@react-router/cloudflare": "^7.0.0-pre.0",
     "isbot": "^4.1.0",
+    "prosemirror-commands": "^1.6.0",
+    "prosemirror-history": "^1.4.1",
+    "prosemirror-keymap": "^1.2.2",
+    "prosemirror-model": "^1.22.3",
+    "prosemirror-schema-basic": "^1.2.3",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-view": "^1.34.3",
     "react": "^18.3.1",
     "react-aria-components": "^1.4.0",
     "react-dom": "^18.3.1",
