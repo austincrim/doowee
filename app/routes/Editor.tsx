@@ -1,50 +1,75 @@
 import { EditorState } from "prosemirror-state"
-import { Schema } from "prosemirror-model"
+import { Node, Schema } from "prosemirror-model"
 import { keymap } from "prosemirror-keymap"
 import { baseKeymap } from "prosemirror-commands"
 import { history, undo, redo } from "prosemirror-history"
 import { nodes } from "prosemirror-schema-basic"
 import { ProseMirror } from "@nytimes/react-prosemirror"
-import { useState } from "react"
-import { db } from "~/lib/hooks"
+import { useEffect, useState } from "react"
+import { db, useInstant } from "~/lib/hooks"
 import { id } from "@instantdb/react"
 
 /**
  * figure out how to render components as nodeviews without breaking everything
- * render all items from instantdb inside prosemirror to support editing, cursoring between
- * ai crap
+ * ai slop
+ *  type in "@recipe", scaffold ingredients
+ *  running estimate of cost
+ *  suggestions "it's been two weeks since you bought milk"
  */
+
+function findNodePosition(doc: Node, targetNode: Node) {
+  let result = 0
+  doc.descendants((node, pos) => {
+    if (node === targetNode) {
+      result = pos
+      return false // Stop traversal
+    }
+  })
+  return result
+}
 
 const todoSchema = new Schema({
   nodes: {
     ...nodes,
     doc: {
-      content: "listItem"
+      content: "listItem* paragraph?"
     },
     listItem: {
       content: "text*",
-      attrs: { done: { default: false } },
+      attrs: {
+        done: { default: false },
+        content: { default: "something" },
+        id: { default: 0 }
+      },
       toDOM: (node) => [
         "li",
         {
           "data-type": "todo-item",
           "data-done": node.attrs.done.toString(),
+          "data-id": node.attrs.id.toString(),
           style: "display: flex;"
         },
         [
           "input",
           {
             type: "checkbox",
-            "data-done": node.attrs.done.toString() ?? "false"
+            "data-done": node.attrs.done.toString() ?? "false",
+            id: node.attrs.id.toString()
           }
         ],
-        ["span", { style: "padding-inline: 8px" }, 0]
+        [
+          "label",
+          { style: "padding-inline: 8px", for: node.attrs.id.toString() },
+          node.attrs.content
+        ]
       ],
       parseDOM: [
         {
           tag: 'li[data-type="todo-item"]',
           getAttrs: (dom) => ({
-            done: dom.getAttribute("data-done") === "true"
+            id: dom.getAttribute("data-id"),
+            done: dom.getAttribute("data-done") === "true",
+            content: dom.querySelector("label")!.textContent
           })
         }
       ]
@@ -58,11 +83,19 @@ const todoPlugins = [
     "Mod-z": undo,
     "Mod-y": redo,
     Enter: (state, dispatch) => {
-      if (!state.doc.firstChild) return true
-      let name = state.doc.content.child(0).content.firstChild?.text ?? ""
+      if (!state.doc.lastChild) return true
+      let name = state.doc.lastChild.textContent ?? ""
+      if (!name) return true
       db.transact(db.tx.item[id()].update({ name, completed: false }))
       if (dispatch) {
-        dispatch(state.tr.delete(0, state.doc.firstChild.nodeSize))
+        let pos = findNodePosition(state.doc, state.doc.lastChild)
+        dispatch(
+          state.tr.replaceWith(
+            pos,
+            pos + state.doc.lastChild.nodeSize,
+            todoSchema.node("paragraph")
+          )
+        )
       }
       return true
     }
@@ -70,25 +103,48 @@ const todoPlugins = [
   keymap(baseKeymap)
 ]
 
-const defaultState = EditorState.create({
-  schema: todoSchema,
-  plugins: todoPlugins,
-  doc: todoSchema.node("doc", null, [
-    todoSchema.node("listItem", { done: false })
-  ])
-})
-
 export function Editor() {
   let [mount, setMount] = useState<HTMLElement | null>(null)
+  let [editorState, setEditorState] = useState<EditorState>()
+  let db = useInstant()
+  let query = db.useQuery({ item: {} })
+  let [prevItems, setPrevItems] = useState()
+  if (JSON.stringify(query.data?.item) !== JSON.stringify(prevItems)) {
+    setEditorState(
+      EditorState.create({
+        schema: todoSchema,
+        plugins: todoPlugins,
+        doc: todoSchema.node("doc", null, [
+          ...query.data.item.map((i) =>
+            todoSchema.node("listItem", {
+              done: i.completed,
+              content: i.name,
+              id: i.id
+            })
+          ),
+          todoSchema.node("paragraph")
+        ])
+      })
+    )
+    setPrevItems(query.data?.item)
+  }
 
   return (
     <div className="pt-2">
-      <ProseMirror mount={mount} defaultState={defaultState}>
-        <div
-          className="outline-none list-none border-b pb-2 border-sky-300"
-          ref={setMount}
-        />
-      </ProseMirror>
+      {editorState ? (
+        <ProseMirror
+          mount={mount}
+          state={editorState}
+          dispatchTransaction={(tr) => {
+            setEditorState((s) => s!.apply(tr))
+          }}
+        >
+          <div
+            className="outline-none list-none border-b p-4 border-sky-300"
+            ref={setMount}
+          />
+        </ProseMirror>
+      ) : null}
     </div>
   )
 }

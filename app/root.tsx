@@ -1,5 +1,4 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
-
 import "./tailwind.css"
 
 export function Layout({ children }: { children: React.ReactNode }) {
